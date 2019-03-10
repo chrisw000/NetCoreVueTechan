@@ -20,7 +20,7 @@
                             <div class="jumbotron">
                                 <div class="headline">{{title}}</div>
                                 <div class="chartContainer">
-                                    <zoom-chart :chart-data="chartData" :dimension="dimension"></zoom-chart>
+                                    <tradeChart :chart-data="chartData" :dimension="dimension"></tradeChart>
                                 </div>
                             </div>
                         </v-card-title>
@@ -39,7 +39,7 @@
 </template>
 
 <script>
-    import ZoomChart from './charts/zoomChart'
+    import TradeChart from './charts/tradeChart'
 
     export default {
         name: 'chart',
@@ -47,7 +47,7 @@
             overlayId: String
         },
         components: {
-            ZoomChart
+            TradeChart
         },
         data() {
             return {
@@ -56,7 +56,7 @@
                 chartData: null,
                 dimension: {
                     width: 300,
-                    height: 500,
+                    height: 200,
                     margin: {
                         top: 25,
                         right: 50,

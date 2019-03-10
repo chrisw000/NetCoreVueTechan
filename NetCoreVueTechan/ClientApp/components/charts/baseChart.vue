@@ -10,7 +10,8 @@
         data() {
             return {
                 _chartData: null,
-                isRendering: false
+                isRendering: false,
+                valueText: null
             }
         },
         methods: {
@@ -245,20 +246,23 @@
 
     div.chartContainer .mouseover .trendline path {
         stroke-width: 1;
+        stroke: orange;
     }
 
     div.chartContainer .mouseover .trendline circle {
         stroke-width: 1;
-        fill: yellow;
+        fill: blue;
         display: inline;
     }
 
     div.chartContainer .mouseover .supstance path {
-        stroke-width: 1.5;
+        stroke: yellow;
+        stroke-width: 0.7;
     }
 
     div.chartContainer .supstance path {
         stroke-dasharray: 2, 2;
+        stroke: cyan;
     }
 
     div.chartContainer .supstances .interaction path {
@@ -297,9 +301,9 @@
     }
 
     div.chartContainer path.tradearrow.buy {
-        stroke-width: 2;
-        stroke: yellow;
-        fill: pink;
+        stroke-width: 1;
+        stroke: #FFFFFF;
+        fill: #00AA00;
     }
 
     div.chartContainer path.tradearrow.buy-pending {
@@ -309,9 +313,9 @@
     }
 
     div.chartContainer path.tradearrow.sell {
-        stroke-width: 2;
-        stroke: yellow;
-        fill: pink;
+        stroke-width: 1;
+        stroke: #FFFFFF;
+        fill: #FF0000;
     }
 
     div.chartContainer .tradearrow path.highlight {

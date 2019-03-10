@@ -5,7 +5,7 @@
     var techan = window.techan;
 
     export default BaseChart.extend({
-        name: 'zoom-chart',
+        name: 'tradeChart',
         methods: {
             renderChart() {
                 this.isRendering = true
@@ -82,7 +82,7 @@
                 let timeAnnotation = techan.plot.axisannotation()
                     .axis(xAxis)
                     .orient('bottom')
-                    .format(d3.timeFormat('%Y-%m-%d %H:%M'))
+                    .format(d3.timeFormat('%H:%M %Y-%m-%d'))
                     .width(85)
                     .translate([0, height])
 
@@ -92,13 +92,29 @@
                     .xAnnotation(timeAnnotation)
                     .yAnnotation(ohlcAnnotation)
 
+                let trendline = techan.plot.trendline()
+                    .xScale(x)
+                    .yScale(y)
+
+                let supstance = techan.plot.supstance()
+                    .xScale(x).
+                    yScale(y)
+                    .annotation(ohlcAnnotation)
+
+                let tradearrow = techan.plot.tradearrow().xScale(x).yScale(y).orient(function (p) {
+                    var type = p.type
+                    return type.startsWith("buy") ? "up" : "down"
+                }).on("mouseenter", this.enter).on("mouseout", this.out)
+
                 let svg = d3.select(el)
                     .attr("width", width + margin.left + margin.right)
                     .attr("height", height + margin.top + margin.bottom)
-
+                                
                 let focus = svg.append("g")
                     .attr("class", "focus")
                     .attr("transform", `translate(${margin.left},${margin.top})`)
+
+                this.valueText = svg.append('text').attr("class", "trade").attr("x", width - 15).attr("y", 15);
 
                 focus.append("clipPath")
                     .attr("id", "clip")
@@ -133,6 +149,18 @@
                     .attr("class", "crosshair")
                     .call(crosshair)
 
+                focus.append("g")
+                    .attr("class", "trendlines analysis")
+                    .attr("clip-path", "url(#clip)")
+
+                focus.append("g")
+                    .attr("class", "supstances analysis")
+                    .attr("clip-path", "url(#clip)")
+
+                focus.append("g")
+                    .attr("class", "tradearrow")
+                    .attr("clip-path", "url(#clip)")
+
                 let context = svg.append("g")
                     .attr("class", "context")
                     .attr("transform", `translate(${margin2.left},${margin2.top})`)
@@ -163,6 +191,10 @@
                 focus.select("g.candlestick").datum(data)
                 focus.select("g.volume").datum(data)
 
+                focus.select("g.trendlines").datum(chartData.trendlines).call(trendline).call(trendline.drag);
+                focus.select("g.supstances").datum(chartData.supstances).call(supstance).call(supstance.drag);
+                focus.select("g.tradearrow").datum(chartData.trades).call(tradearrow);
+
                 context.select("g.close").datum(data).call(close)
                 context.select("g.x.axis").call(xAxis2)
 
@@ -181,7 +213,10 @@
                     focus: focus,
                     candlestick: candlestick,
                     volume: volume,
-                    data: data
+                    data: data,
+                    trendline: trendline,
+                    tradearrow: tradearrow,
+                    supstance: supstance
                 }
             },
 
@@ -202,8 +237,32 @@
                 // using refresh method is more efficient as it does not perform any data joins
                 // Use this if underlying data is not changing
                 this.config.svg.select("g.candlestick").call(this.config.candlestick.refresh);
+
+                this.config.focus.select("g.trendlines").call(this.config.trendline.refresh);
+                this.config.focus.select("g.tradearrow").call(this.config.tradearrow.refresh);
+                this.config.focus.select("g.supstances").call(this.config.supstance.refresh);
+
                 this.config.focus.select("g.x.axis").call(this.config.xAxis);
                 this.config.focus.select("g.y.axis").call(this.config.yAxis);
+            },
+            enter(d) {
+                this.valueText.style("display", "inline")
+                this.refreshText(d)
+            },
+            out() {
+                this.valueText.style("display", "none")
+            },
+            refreshText(_ref3) {
+                let longDateFormat = d3.timeFormat("%H:%M %Y-%m-%d")
+                let valueFormat = d3.format(',.2f')
+
+                let type = _ref3.type,
+                    quantity = _ref3.quantity,
+                    price = _ref3.price,
+                    date = _ref3.date
+
+                this.valueText.text("".concat(type, " ").concat(quantity, " @ ").concat(valueFormat(price), " on ")
+                    .concat(longDateFormat(date)))
             }
         }
     })
