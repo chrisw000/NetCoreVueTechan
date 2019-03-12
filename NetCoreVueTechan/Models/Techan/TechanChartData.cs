@@ -6,7 +6,7 @@ namespace NetCoreVueTechan.Models.Techan
     {
         public IList<OhlcvDatapoint> Ohlc { get; } = new List<OhlcvDatapoint>();
 
-        public IList<ValueDataPoint> Overlay { get; } = new List<ValueDataPoint>();
+        public IList<ValueDataPoint> Overlay { get; set; } = new List<ValueDataPoint>();
 
         public string Name { get; set; }
 

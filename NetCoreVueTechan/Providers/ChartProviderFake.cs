@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using NetCoreVueTechan.Models.Techan;
 
@@ -17,20 +18,24 @@ namespace NetCoreVueTechan.Providers
 
         private void Initialize(int quantity)
         {
+            var candlePeriodInSeconds = TimeSpan.FromHours(1).TotalSeconds;
+
             var from = DateTime.Now
                 .AddMinutes(-DateTime.Now.Minute).AddSeconds(-DateTime.Now.Second)
-                .AddHours(-quantity);
+                .AddSeconds(-quantity * candlePeriodInSeconds);
 
             _chart.Name = $"Random Chart {from:G} to {DateTime.Now:G}";
             _chart.Symbol = "£";
 
             decimal? oldPrice = 100.0m;
             var volatility = 0.02m;
+
+            // Add sin wave "indicator" values
+            _chart.Overlay = GenerateSinWaveIndicator(quantity, from, candlePeriodInSeconds);
             
             // Add random OHLCV data
             for (var i = 0; i < quantity; i++)
             {
-
                 var spread = 0m;
                 var low = 1m;
                 var high = 0m;
@@ -56,29 +61,64 @@ namespace NetCoreVueTechan.Providers
                 });
 
                 oldPrice = newPrice;
-                from = from.AddHours(1);
+                from = from.AddSeconds(candlePeriodInSeconds);
             }
 
-            // Add line for the Average High
-            _chart.Supstances.Add(new TechanSupstance(_chart.Ohlc[5].EndDateTime, _chart.Ohlc[_chart.Ohlc.Count-5].EndDateTime, _chart.Ohlc.Select(o=>o.High).Average()));
+            // Picks some random points to put trades / trends / support&resistance lines
+            var p1a = (int)(45.0 - (_rng.NextDouble() * 40.0));
+            var p1b = (int)(75.0 + (_rng.NextDouble() * 40.0));
+            var p2a = (int)(165.0 - (_rng.NextDouble() * 40.0));
+            var p2b = (int)(175.0 + (_rng.NextDouble() * 40.0));
+            var p3a = (int)(285.0 - (_rng.NextDouble() * 40.0));
+            var p3b = (int)(315.0 + (_rng.NextDouble() * 40.0));
 
-            // Add line for the Average Low
-            _chart.Supstances.Add(new TechanSupstance(_chart.Ohlc[5].EndDateTime, _chart.Ohlc[_chart.Ohlc.Count-5].EndDateTime, _chart.Ohlc.Select(o=>o.Low).Average()));
+            // Add line for the Average High / Average Low for the periods
+            _chart.Supstances.Add(new TechanSupstance(_chart.Ohlc[p1a].EndDateTime, _chart.Ohlc[p1b].EndDateTime, _chart.Ohlc.ToList().GetRange(p1a, p1b-p1a).Select(o=>o.High).Average()));
+            _chart.Supstances.Add(new TechanSupstance(_chart.Ohlc[p1a].EndDateTime, _chart.Ohlc[p1b].EndDateTime, _chart.Ohlc.ToList().GetRange(p1a, p1b-p1a).Select(o=>o.Low).Average()));
+            _chart.Supstances.Add(new TechanSupstance(_chart.Ohlc[p2a].EndDateTime, _chart.Ohlc[p2b].EndDateTime, _chart.Ohlc.ToList().GetRange(p2a, p2b-p2a).Select(o=>o.High).Average()));
+            _chart.Supstances.Add(new TechanSupstance(_chart.Ohlc[p2a].EndDateTime, _chart.Ohlc[p2b].EndDateTime, _chart.Ohlc.ToList().GetRange(p2a, p2b-p2a).Select(o=>o.Low).Average()));
+            _chart.Supstances.Add(new TechanSupstance(_chart.Ohlc[p3a].EndDateTime, _chart.Ohlc[p3b].EndDateTime, _chart.Ohlc.ToList().GetRange(p3a, p3b-p3a).Select(o=>o.High).Average()));
+            _chart.Supstances.Add(new TechanSupstance(_chart.Ohlc[p3a].EndDateTime, _chart.Ohlc[p3b].EndDateTime, _chart.Ohlc.ToList().GetRange(p3a, p3b-p3a).Select(o=>o.Low).Average()));
             
             // Add some trend lines
-            _chart.Trendlines.Add(new TechanTrendline(new TechanTrendlineItem(_chart.Ohlc[8].EndDateTime, _chart.Ohlc[8].Low), new TechanTrendlineItem(_chart.Ohlc[54].EndDateTime, _chart.Ohlc[54].High)));
-            _chart.Trendlines.Add(new TechanTrendline(new TechanTrendlineItem(_chart.Ohlc[99].EndDateTime, _chart.Ohlc[99].Low), new TechanTrendlineItem(_chart.Ohlc[187].EndDateTime, _chart.Ohlc[187].High)));
-            _chart.Trendlines.Add(new TechanTrendline(new TechanTrendlineItem(_chart.Ohlc[242].EndDateTime, _chart.Ohlc[242].Low), new TechanTrendlineItem(_chart.Ohlc[347].EndDateTime, _chart.Ohlc[347].High)));
+            _chart.Trendlines.Add(new TechanTrendline(new TechanTrendlineItem(_chart.Ohlc[p1a].EndDateTime, _chart.Ohlc[p1a].Low), new TechanTrendlineItem(_chart.Ohlc[p1b].EndDateTime, _chart.Ohlc[p1b].High)));
+            _chart.Trendlines.Add(new TechanTrendline(new TechanTrendlineItem(_chart.Ohlc[p2a].EndDateTime, _chart.Ohlc[p2a].Low), new TechanTrendlineItem(_chart.Ohlc[p2b].EndDateTime, _chart.Ohlc[p2b].High)));
+            _chart.Trendlines.Add(new TechanTrendline(new TechanTrendlineItem(_chart.Ohlc[p3a].EndDateTime, _chart.Ohlc[p3a].Low), new TechanTrendlineItem(_chart.Ohlc[p3b].EndDateTime, _chart.Ohlc[p3b].High)));
 
             // Add some trades
-            _chart.Trades.Add(new TechanTrade(_chart.Ohlc[8].EndDateTime, true, _chart.Ohlc[8].Open.Value, 10));
-            _chart.Trades.Add(new TechanTrade(_chart.Ohlc[54].EndDateTime, false, _chart.Ohlc[54].Open.Value, 10));
+            _chart.Trades.Add(new TechanTrade(_chart.Ohlc[p1a].EndDateTime, true, _chart.Ohlc[p1a].Open.Value, 100));
+            _chart.Trades.Add(new TechanTrade(_chart.Ohlc[p1b].EndDateTime, false, _chart.Ohlc[p1b].Open.Value, 100));
 
-            _chart.Trades.Add(new TechanTrade(_chart.Ohlc[99].EndDateTime, true, _chart.Ohlc[99].Open.Value, 10));
-            _chart.Trades.Add(new TechanTrade(_chart.Ohlc[187].EndDateTime, false, _chart.Ohlc[187].Open.Value, 10));
+            _chart.Trades.Add(new TechanTrade(_chart.Ohlc[p2a].EndDateTime, true, _chart.Ohlc[p2a].Open.Value, 250));
+            _chart.Trades.Add(new TechanTrade(_chart.Ohlc[p2b].EndDateTime, false, _chart.Ohlc[p2b].Open.Value, 250));
 
-            _chart.Trades.Add(new TechanTrade(_chart.Ohlc[242].EndDateTime, true, _chart.Ohlc[242].Open.Value, 10));
-            _chart.Trades.Add(new TechanTrade(_chart.Ohlc[347].EndDateTime, false, _chart.Ohlc[347].Open.Value, 10));
+            _chart.Trades.Add(new TechanTrade(_chart.Ohlc[p3a].EndDateTime, true, _chart.Ohlc[p3a].Open.Value, 125));
+            _chart.Trades.Add(new TechanTrade(_chart.Ohlc[p3b].EndDateTime, false, _chart.Ohlc[p3b].Open.Value, 125));
+        }
+
+        private static List<ValueDataPoint> GenerateSinWaveIndicator(int quantity, DateTime from, double periodInSeconds)
+        {
+            const double tau = 2 * Math.PI;
+            const double amplitude = 100.0;
+            const double frequency = 2.0;
+            const int sampleRate = 360;
+
+            const double theta = frequency * tau / sampleRate;
+            
+            var rc = new List<ValueDataPoint>();
+
+            for (var i = 0; i < quantity; i++)
+            {
+                rc.Add(new ValueDataPoint()
+                {
+                    EndDateTime = from,
+                    Value = (decimal)(amplitude * Math.Sin(theta * i))
+                });
+
+                from = from.AddSeconds(periodInSeconds);
+            }
+
+            return rc;
         }
         
         public TechanChartData GetChart(int overlayId)
@@ -86,6 +126,5 @@ namespace NetCoreVueTechan.Providers
             // just return the fake... usually this would be off to the database for chart with overlayId
             return _chart;
         }
-
     }
 }

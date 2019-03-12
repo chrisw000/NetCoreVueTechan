@@ -1,14 +1,16 @@
-import HomePage from 'components/home-page'
 import Chart from 'components/chart'
+import TradeChart from 'components/charts/tradeChart'
 
 export const routes = [
-  { name: 'home', path: '/', component: HomePage, display: 'Home', icon: 'home' },
+    { path: '/', redirect: '/chart/0' },
     {
          name: 'chart', 
-         path: '/chart/:overlayId', 
+         path: '/chart', 
          component: Chart, 
-         display: 'Chart', 
-         icon: 'chart-line',
-         props: true
+         children: [{
+             path: ':overlayId',
+             component: TradeChart,
+             props: true
+         }]
     }
 ];
