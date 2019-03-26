@@ -1,5 +1,7 @@
 # NetCoreVueTechan
 
+[![Build status](https://ci.appveyor.com/api/projects/status/mob2ifm09flvofo9?svg=true)](https://ci.appveyor.com/project/chrisw000/netcorevuetechan)
+
 A Dot Net Core 2.2 web app using [Vue](https://github.com/vuejs/vue) and [Vuetify](https://github.com/vuetifyjs/vuetify) to implement a [TechanJs](https://github.com/andredumas/techan.js) chart, with charting data provided by WebApi.
 
 This is an example chart, showing the zoom panel, a custom indicator, trades, trend lines and support lines. This chart is rendered as a Vue component. All the data is provided by an ASP.NET Core WebAPI controller.
